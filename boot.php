@@ -12,14 +12,14 @@ function __boot_pre(){
 
 	//load config
 	$config = array();
-	__init_load_files(__DIR__.'/conf.d',false,'__export_config',array(&$config));
+	__init_load_files(__DIR__.'/conf',false,'__export_config',array(&$config));
 	@include('config.php');
 
 	//set timezone
 	date_default_timezone_set($config['info']['default_timezone']);
 
 	//set root path
-	define('ROOT',$config['paths']['lss']);
+	define('ROOT',__DIR__);
 	define('ROOT_URI',$config['url']['uri']);
 
 	//load req libs
@@ -30,14 +30,14 @@ function __boot_post(){
 
 	try {
 		//load global funcs
-		__init_load_files(ROOT.'/func.d',true);
+		__init_load_files(ROOT.'/func',true);
 
 		//init modules
-		__init_load_files(ROOT.'/init.d',true);
+		__init_load_files(ROOT.'/init',true);
 
 		//load error codes
 		$err = array();
-		__init_load_files(ROOT.'/err.d',false,'registerErrCodes',array(&$err));
+		__init_load_files(ROOT.'/err',false,'registerErrCodes',array(&$err));
 
 	} catch(Exception $e){
 		sysError($e->getMessage());
@@ -85,26 +85,13 @@ function __make_class_name($name){
 
 function lib(){
 	foreach(func_get_args() as $name){
+		//check if class is alreayd loaded and stop if fo
 		if(class_exists(__make_class_name($name))) continue;
-		$file = ROOT.'/lib/'.$name.'.php';
-		if(file_exists($file)){
-			require_once($file);
-			continue;
-		}
-		$parts = explode('_',$name);
-		if(!count($parts)){
-			trigger_error(
-					 'Class name invalid for loading: '.$name
-					.' called from '.mda_get($trace[0],'file')
-					.' line '.mda_get($trace[0],'line')
-				,E_USER_ERROR
-			);
-		}
-		$file = ROOT.'/lib/'.array_shift($parts).'/'.implode('_',$parts).'.php';
-		if(file_exists($file)){
-			require_once($file);
-			continue;
-		}
+		//check group location (if defined)
+		if(is_defined('ROOT_GROUP') && __load_lib(ROOT_GROUP,$name)) continue;
+		//check global location and load
+		if(__load_lib(ROOT,$name)) continue;
+		//try to load from a subfolder
 		$trace = debug_backtrace();
 		trigger_error(
 				 'Class not found: '.$name
@@ -114,4 +101,30 @@ function lib(){
 		);
 	}
 	return;
+}
+
+function __load_lib($root,$name){
+	//try to load from the root
+	$file = $root.'/lib/'.$name.'.php';
+	if(file_exists($file)){
+		require_once($file);
+		return true;
+	}
+	//load parts
+	$parts = explode('_',$name);
+	if(!count($parts)){
+		trigger_error(
+				 'Class name invalid for loading: '.$name
+				.' called from '.mda_get($trace[0],'file')
+				.' line '.mda_get($trace[0],'line')
+			,E_USER_ERROR
+		);
+	}
+	//build part based name
+	$file = $root.'/lib/'.array_shift($parts).'/'.implode('_',$parts).'.php';
+	if(file_exists($file)){
+		require_once($file);
+		return true;
+	}
+	return false;
 }
