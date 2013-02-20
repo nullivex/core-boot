@@ -88,7 +88,7 @@ function lib(){
 		//check if class is alreayd loaded and stop if fo
 		if(class_exists(__make_class_name($name))) continue;
 		//check group location (if defined)
-		if(is_defined('ROOT_GROUP') && __load_lib(ROOT_GROUP,$name)) continue;
+		if(defined('ROOT_GROUP') && __load_lib(ROOT_GROUP,$name)) continue;
 		//check global location and load
 		if(__load_lib(ROOT,$name)) continue;
 		//try to load from a subfolder
