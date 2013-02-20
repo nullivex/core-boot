@@ -6,8 +6,6 @@
 function __boot_pre(){
 	global $config;
 
-	ob_start();
-	session_start();
 	define('START',microtime(true));
 
 	//load config
@@ -22,8 +20,6 @@ function __boot_pre(){
 	define('ROOT',__DIR__);
 	define('ROOT_URI',$config['url']['uri']);
 
-	//load req libs
-	lib('router');
 }
 
 function __boot_post(){
@@ -64,6 +60,7 @@ function __init_load_files($dir_path,$ordered=false,$callback=false,$callback_pa
 	if($ordered) sort($files);
 	//load files
 	foreach($files as $file){
+		if(defined('INIT_LOAD_DEBUG')) echo 'loaded file: '.$dir_path.'/'.$file."\n";
 		if($callback && function_exists($callback)){
 			$params = $callback_params;
 			array_unshift($params,$dir_path.'/'.$file);
