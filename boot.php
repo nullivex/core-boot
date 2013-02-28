@@ -77,18 +77,29 @@ function __export_config($file,&$config){
 }
 
 function __make_class_name($name){
-	return str_replace(' ','',ucwords(str_replace('_',' ',$name)));
+	return str_replace(' ','',ucwords(str_replace('_',' ',basename($name))));
 }
 
+//Global Library Loader similar to LD for linux
+//	Takes unlimited arguments with the following syntax
+//		'lib_name' - load the lib automatically based on its name
+//			will load group level and if not found will load root level
+//			will also try collection loading for libs in a collection
+//			EG: if item_taxes is passed it will check lib/item/taxes.php
+//			NOTE: even forced locations still perform this lookup
+//		'/lib_name' - force lib to load from root, other locations
+//			will not be tried
+//		'group/lib_name' - cross load lib from other group
+//			other locations will not be tried
 function lib(){
 	foreach(func_get_args() as $name){
-		//check if class is alreayd loaded and stop if fo
-		if(class_exists(__make_class_name($name))) continue;
-		//check group location (if defined)
-		if(defined('ROOT_GROUP') && __load_lib(ROOT_GROUP,$name)) continue;
-		//check global location and load
-		if(__load_lib(ROOT,$name)) continue;
-		//try to load from a subfolder
+		$lib = lib_exists($name);
+		if($lib === true) continue;
+		if($lib !== false){
+			require_once($lib);
+			continue;
+		}
+		//print error
 		$trace = debug_backtrace();
 		trigger_error(
 				 'Class not found: '.$name
@@ -97,19 +108,43 @@ function lib(){
 			,E_USER_ERROR
 		);
 	}
-	return;
+	return false;
 }
 
-function __load_lib($root,$name){
+//Global lib existence checker
+//	Will check to see if a lib exists and supports all the
+//	syntax of the global lib loader
+//	Returns the following
+//		true: class has already been loaded by name
+//		false: class does not exist and hasnt been loaded
+//		string: absolute file path to the class to be loaded
+function lib_exists($name){
+	//check if class is alreayd loaded and stop if fo
+	if(class_exists(__make_class_name($name))) return true;
+	//check if this class is explicitly loaded from root
+	if(strpos($name,'/') === 0)
+		if(($rv = __load_lib(ROOT,basename($name))) !== false) return $rv;
+	//check if this a cross load to a group
+	if(strpos($name,'/') !== false && strpos($name,'/') !== 0){
+		list($group,$lib) = explode('/',$name);
+		if(($rv = __load_lib(ROOT.'/'.$group,$lib)) !== false) return $rv;
+	}
+	//check group location (if defined)
+	if(defined('ROOT_GROUP') && ($rv = __load_lib(ROOT_GROUP,$name)) !== false) return $rv;
+	//check global location and load
+	if(($rv = __load_lib(ROOT,$name)) !== false) return $rv;
+	return false;
+}
+
+
+function __load_lib($root,$name,$return_on_error=false){
 	//try to load from the root
 	$file = $root.'/lib/'.$name.'.php';
-	if(file_exists($file)){
-		require_once($file);
-		return true;
-	}
+	if(file_exists($file)) return $file;
 	//load parts
 	$parts = explode('_',$name);
 	if(!count($parts)){
+		if($return_on_error) return false;
 		trigger_error(
 				 'Class name invalid for loading: '.$name
 				.' called from '.mda_get($trace[0],'file')
@@ -119,9 +154,6 @@ function __load_lib($root,$name){
 	}
 	//build part based name
 	$file = $root.'/lib/'.array_shift($parts).'/'.implode('_',$parts).'.php';
-	if(file_exists($file)){
-		require_once($file);
-		return true;
-	}
+	if(file_exists($file)) return $file;
 	return false;
 }
