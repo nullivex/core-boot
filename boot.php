@@ -3,22 +3,30 @@
 //----------------------------
 //Init Functions
 //----------------------------
-function __boot_pre($cfgpath='.'){
+function __boot_pre(){
 	global $config;
 
 	define('START',microtime(true));
+	
+	//set root path
+	define('ROOT',__DIR__);
 
 	//load config
 	$config = array();
-	__init_load_files(__DIR__.'/conf',false,'__export_config',array(&$config));
-	include($cfgpath.'/config.php');
+	if(defined('ROOT') && is_dir(ROOT.'/conf'))
+		__init_load_files(ROOT.'/conf',false,'__export_config',array(&$config));
+	if(defined('ROOT_GROUP') && is_dir(ROOT_GROUP.'/conf'))
+		__init_load_files(ROOT_GROUP.'/conf',false,'__export_config',array(&$config));
+	if(file_exists(ROOT.'/config.php'))
+		include(ROOT.'/config.php');
+	if(defined('ROOT_GROUP') && file_exists(ROOT_GROUP.'/config.php'))
+		include(ROOT_GROUP.'/config.php');
 
 	//set timezone
-	date_default_timezone_set($config['info']['default_timezone']);
-
-	//set root path
-	define('ROOT',__DIR__);
-	define('ROOT_URI',$config['url']['uri']);
+	if(isset($config['info']['default_timezone']))
+		date_default_timezone_set($config['info']['default_timezone']);
+	else
+		date_default_timezone_set('UTC');
 
 }
 
