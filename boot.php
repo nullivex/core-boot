@@ -3,7 +3,7 @@
 //----------------------------
 //Init Functions
 //----------------------------
-function __boot_pre(){
+function __boot_pre($cfgpath='.'){
 	global $config;
 
 	define('START',microtime(true));
@@ -11,7 +11,7 @@ function __boot_pre(){
 	//load config
 	$config = array();
 	__init_load_files(__DIR__.'/conf',false,'__export_config',array(&$config));
-	@include('config.php');
+	include($cfgpath.'/config.php');
 
 	//set timezone
 	date_default_timezone_set($config['info']['default_timezone']);
