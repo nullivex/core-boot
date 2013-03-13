@@ -1,8 +1,32 @@
 <?php
 
+//Error handling gets setup before we start booting
+function __error_handler($errno, $errstr, $errfile, $errline ) {
+	throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
+}
+set_error_handler('__error_handler');
+
+function __exception_handler($e){
+	if(php_sapi_name() != 'cli'){
+		echo '<h1>Error</h1><p>'.$e->getMessage().'</p><pre>'.$e.'</pre>';
+		exit($e->getCode());
+	}
+	if(is_callable('dolog')){
+		dolog($e->getMessage(),LOG_ERROR);
+		exit($e->getCode());
+	}
+	exit($e);
+}
+set_exception_handler('__exception_handler');
+
 //----------------------------
 //Init Functions
 //----------------------------
+function __boot(){
+	__boot_pre();
+	__boot_post();
+}
+
 function __boot_pre(){
 	global $config;
 
@@ -13,10 +37,9 @@ function __boot_pre(){
 
 	//load config
 	$config = array();
-	if(defined('ROOT') && is_dir(ROOT.'/conf'))
-		__init_load_files(ROOT.'/conf',false,'__export_config',array(&$config));
+	__init_load_files(ROOT.'/conf','__export_config',array(&$config));
 	if(defined('ROOT_GROUP') && is_dir(ROOT_GROUP.'/conf'))
-		__init_load_files(ROOT_GROUP.'/conf',false,'__export_config',array(&$config));
+		__init_load_files(ROOT_GROUP.'/conf','__export_config',array(&$config));
 	if(file_exists(ROOT.'/config.php'))
 		include(ROOT.'/config.php');
 	if(defined('ROOT_GROUP') && file_exists(ROOT_GROUP.'/config.php'))
@@ -28,28 +51,32 @@ function __boot_pre(){
 	else
 		date_default_timezone_set('UTC');
 
+	//load global funcs
+	__init_load_files(ROOT.'/func');
+	//load error codes
+	$err = array();
+	__init_load_files(ROOT.'/err','__register_err_codes',array(&$err));
+
+	//load from the group if we can
+	if(defined('ROOT_GROUP')){
+		//load global funcs
+		__init_load_files(ROOT_GROUP.'/func');
+		//load error codes
+		$err = array();
+		__init_load_files(ROOT_GROUP.'/err','__register_err_codes',array(&$err));
+	}
 }
 
 function __boot_post(){
-
-	try {
-		//load global funcs
-		__init_load_files(ROOT.'/func',true);
-
+	//init modules
+	__init_load_files(ROOT.'/init');
+	if(defined('ROOT_GROUP')){
 		//init modules
-		__init_load_files(ROOT.'/init',true);
-
-		//load error codes
-		$err = array();
-		__init_load_files(ROOT.'/err',false,'registerErrCodes',array(&$err));
-
-	} catch(Exception $e){
-		sysError($e->getMessage());
+		__init_load_files(ROOT_GROUP.'/init');
 	}
-
 }
 
-function __init_load_files($dir_path,$ordered=false,$callback=false,$callback_params=array()){
+function __init_load_files($dir_path,$callback=false,$callback_params=array(),$recurse=true){
 	$dir = false;
 	$files = array();
 	//try to open dir
@@ -60,12 +87,16 @@ function __init_load_files($dir_path,$ordered=false,$callback=false,$callback_pa
 	while($dir && ($file = readdir($dir)) !== false){
 		if(substr($file,-4)!='.php') continue;		//only *.php
 		if(substr($file,0,1)=='.') continue;		//skip hidden files (including . and ..)
-		if(is_dir($dir_path.'/'.$file)) continue;	//skip subdirectories
+		if(is_dir($dir_path.'/'.$file)){
+			if(!$recurse) continue;	//skip subdirectories
+			__init_load_files($dir_path.'/'.$file,$callback,$callback_params,$recurse);
+			continue;
+		}
 		$files[] = $file;
 	}
 	closedir($dir);
 	//sort files if needed
-	if($ordered) sort($files);
+	sort($files);
 	//load files
 	foreach($files as $file){
 		if(defined('INIT_LOAD_DEBUG')) echo 'loaded file: '.$dir_path.'/'.$file."\n";
@@ -165,3 +196,28 @@ function __load_lib($root,$name,$return_on_error=false){
 	if(file_exists($file)) return $file;
 	return false;
 }
+
+function __register_err_codes($file,&$err_codes=array()){
+	include($file);
+	if(!isset($err)) return;
+	foreach($err as $code => $constant){
+		if(strpos($constant,'ERR_') !== 0){
+			trigger_error('Invalid error code constant: '.$constant.' must start with ERR_ definition ignored');
+			continue;
+		}
+		if(in_array($code,array_keys($err_codes))){
+			trigger_error('Error code already defined: '.$code.' by constant: '.$err_codes[$code].' definition ignored');
+			continue;
+		}
+		if(defined($constant)){
+			trigger_error('Error constant has already been defined: '.$constant.' and is in use by code '.constant($constant).' definition ignored');
+			continue;
+		}
+		define($constant,$code);
+		$err_codes[$code] = $constant;
+	}
+}
+
+
+
+
