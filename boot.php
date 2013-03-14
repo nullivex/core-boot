@@ -2,6 +2,9 @@
 
 //Error handling gets setup before we start booting
 function __error_handler($errno, $errstr, $errfile, $errline ) {
+	//ignore strict errors
+	if($errno == E_STRICT) return null;
+	//throw all other errors to the exception handler
 	throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
 }
 set_error_handler('__error_handler');
