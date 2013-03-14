@@ -15,7 +15,7 @@ function __exception_handler($e){
 		exit($e->getCode());
 	}
 	if(is_callable('dolog')){
-		dolog($e->getMessage(),LOG_ERROR);
+		dolog($e->getMessage()."\n".$e,LOG_ERROR);
 		exit($e->getCode());
 	}
 	exit($e);
