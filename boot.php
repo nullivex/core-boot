@@ -88,13 +88,8 @@ function __init_load_files($dir_path,$callback=false,$callback_params=array(),$r
 	if(!$dir) return false;
 	//read dir into array
 	while($dir && ($file = readdir($dir)) !== false){
-		if(substr($file,-4)!='.php') continue;		//only *.php
 		if(substr($file,0,1)=='.') continue;		//skip hidden files (including . and ..)
-		if(is_dir($dir_path.'/'.$file)){
-			if(!$recurse) continue;	//skip subdirectories
-			__init_load_files($dir_path.'/'.$file,$callback,$callback_params,$recurse);
-			continue;
-		}
+		if(!is_dir($dir_path.'/'.$file) && substr($file,-4)!='.php') continue;		//only *.php
 		$files[] = $file;
 	}
 	closedir($dir);
@@ -102,6 +97,11 @@ function __init_load_files($dir_path,$callback=false,$callback_params=array(),$r
 	sort($files);
 	//load files
 	foreach($files as $file){
+		if(is_dir($dir_path.'/'.$file)){
+			if(!$recurse) continue;	//skip subdirectories
+			__init_load_files($dir_path.'/'.$file,$callback,$callback_params,$recurse);
+			continue;
+		}
 		if(defined('INIT_LOAD_DEBUG')) echo 'loaded file: '.$dir_path.'/'.$file."\n";
 		if($callback && function_exists($callback)){
 			$params = $callback_params;
