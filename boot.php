@@ -49,8 +49,8 @@ function __boot_pre(){
 		include(ROOT_GROUP.'/config.php');
 
 	//set timezone
-	if(isset($config['info']['default_timezone']))
-		date_default_timezone_set($config['info']['default_timezone']);
+	if(isset($config['timezone']))
+		date_default_timezone_set($config['timezone']);
 	else
 		date_default_timezone_set('UTC');
 
@@ -161,7 +161,7 @@ function lib(){
 //		false: class does not exist and hasnt been loaded
 //		string: absolute file path to the class to be loaded
 function lib_exists($name){
-	//check if class is alreayd loaded and stop if fo
+	//check if class is already loaded and stop if so
 	if(class_exists(__make_class_name($name))) return true;
 	//check if this class is explicitly loaded from root
 	if(strpos($name,'/') === 0)
