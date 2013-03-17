@@ -42,7 +42,7 @@ class libTest extends PHPUNIT_Framework_TestCase {
 	}
 
 	public function testExistsClassExists(){
-		$this->assertEquals(true,lib_exists('db'));
+		$this->assertNotSame(false,lib_exists('db'));
 	}
 
 	public function testExistsRelative(){
@@ -67,29 +67,29 @@ class libTest extends PHPUNIT_Framework_TestCase {
 
 	public function testRelative(){
 		lib('test_root');
-		$this->assertEquals(true,class_exists('TestRoot2'));
+		$this->assertTrue(class_exists('TestRoot2'));
 	}
 
 	public function testRoot(){
 		lib('/test_root');
-		$this->assertEquals(true,class_exists('TestRoot'));
+		$this->assertTrue(class_exists('TestRoot'));
 	}
 
 	public function testGroup(){
 		lib('admin/test_admin');
-		$this->assertEquals(true,class_exists('TestAdmin'));
+		$this->assertTrue(class_exists('TestAdmin'));
 	}
 	
 	public function testItem(){
 		lib('admin/item_test');
-		$this->assertEquals(true,class_exists('ItemTest'));
+		$this->assertTrue(class_exists('ItemTest'));
 	}
 	
 	public function testOverloading(){
 		lib('item_test');
 		lib('admin/item_test');
 		lib('/test_root');
-		$this->assertEquals(true,class_exists('ItemTest'));
+		$this->assertTrue(class_exists('ItemTest'));
 	}
 
 }
