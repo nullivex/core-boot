@@ -26,7 +26,7 @@ class ldTest extends PHPUNIT_Framework_TestCase {
 		file_put_contents(ROOT.'/admin/lib/test_root.php','<?php class TestRoot2{}');
 		file_put_contents(ROOT.'/admin/lib/item/test.php','<?php class ItemTest{}');
 		//falsely define our group
-		define('ROOT_GROUP',ROOT.'/admin');
+		if(!defined('ROOT_GROUP')) define('ROOT_GROUP',ROOT.'/admin');
 	}
 
 	public static function tearDownAfterClass(){
