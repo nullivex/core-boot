@@ -1,5 +1,10 @@
 <?php
+//Set the timezone to UTC before we start
+date_default_timezone_set('UTC');
 
+//---------------------------------------------------------
+//Error Handling
+//---------------------------------------------------------
 //Error handling gets setup before we start booting
 function __error_handler($errno, $errstr, $errfile, $errline ) {
 	//ignore strict errors
@@ -22,9 +27,9 @@ function __exception_handler($e){
 }
 set_exception_handler('__exception_handler');
 
-//----------------------------
+//---------------------------------------------------------
 //Init Functions
-//----------------------------
+//---------------------------------------------------------
 function __boot(){
 	__boot_pre();
 	__boot_post();
@@ -51,23 +56,6 @@ function __boot_pre(){
 	//set timezone
 	if(isset($config['timezone']))
 		date_default_timezone_set($config['timezone']);
-	else
-		date_default_timezone_set('UTC');
-
-	//load global funcs
-	__init_load_files(ROOT.'/func');
-	//load error codes
-	$err = array();
-	__init_load_files(ROOT.'/err','__register_err_codes',array(&$err));
-
-	//load from the group if we can
-	if(defined('ROOT_GROUP')){
-		//load global funcs
-		__init_load_files(ROOT_GROUP.'/func');
-		//load error codes
-		$err = array();
-		__init_load_files(ROOT_GROUP.'/err','__register_err_codes',array(&$err));
-	}
 }
 
 function __boot_post(){
@@ -118,12 +106,9 @@ function __export_config($file,&$config){
 	include_once($file);
 }
 
-function __make_class_name($name){
-	return str_replace(' ','',ucwords(str_replace('_',' ',basename($name))));
-}
-
-//Global Library Loader similar to LD for linux
+//Global Auto Loader similar to LD for linux
 //	Takes unlimited arguments with the following syntax
+//		LIBRARIES (default)
 //		'lib_name' - load the lib automatically based on its name
 //			will load group level and if not found will load root level
 //			will also try collection loading for libs in a collection
@@ -133,55 +118,66 @@ function __make_class_name($name){
 //			will not be tried
 //		'group/lib_name' - cross load lib from other group
 //			other locations will not be tried
-function lib(){
+//		FUNCTIONS
+//		'func/pkg' - will load functions in the same fashion
+//			can also be forced with /func/pkg admin/func/pkg etc
+function ld(){
+	global $__ld_loaded;
+	if(!isset($__ld_loaded) || !is_array($__ld_loaded))
+		$__ld_loaded = array();
+	//load
 	foreach(func_get_args() as $name){
-		$lib = lib_exists($name);
-		if($lib === true) continue;
-		if($lib !== false){
-			require_once($lib);
+		$prefix = 'lib';
+		if(strpos('func') !== false && strpos('func') !== strlen($name)-4)
+			$prefix = 'func';
+		$load = ld_exists($name,$prefix);
+		if($load !== false && in_array($load,$__ld_loaded)) continue;
+		if($load !== false){
+			$__ld_loaded[] = $load;
+			require_once($load);
 			continue;
 		}
 		//print error
 		$trace = debug_backtrace();
 		trigger_error(
-				 'Class not found: '.$name
-				.' called from '.mda_get($trace[0],'file')
-				.' line '.mda_get($trace[0],'line')
+				 'Autoloader file not found: '.$name
+				.' called from '.$trace[0]['file']
+				.' line '.$trace[0]['line']
 			,E_USER_ERROR
 		);
 	}
 	return false;
 }
 
-//Global lib existence checker
+//Global auto loader existence checker
 //	Will check to see if a lib exists and supports all the
 //	syntax of the global lib loader
 //	Returns the following
 //		true: class has already been loaded by name
 //		false: class does not exist and hasnt been loaded
 //		string: absolute file path to the class to be loaded
-function lib_exists($name){
+function ld_exists($name,$prefix='lib'){
 	//check if class is already loaded and stop if so
-	if(class_exists(__make_class_name($name))) return true;
+	if($prefix == 'lib' && class_exists(__make_class_name(basename($name)))) return true;
 	//check if this class is explicitly loaded from root
 	if(strpos($name,'/') === 0)
-		if(($rv = __load_lib(ROOT,basename($name))) !== false) return $rv;
+		if(($rv = __load_ld(ROOT,basename($name),$prefix)) !== false) return $rv;
 	//check if this a cross load to a group
 	if(strpos($name,'/') !== false && strpos($name,'/') !== 0){
-		list($group,$lib) = explode('/',$name);
-		if(($rv = __load_lib(ROOT.'/'.$group,$lib)) !== false) return $rv;
+		list($group,$load) = explode('/',$name);
+		if(($rv = __load_ld(ROOT.'/'.$group,$load,$prefix)) !== false) return $rv;
 	}
 	//check group location (if defined)
-	if(defined('ROOT_GROUP') && ($rv = __load_lib(ROOT_GROUP,$name)) !== false) return $rv;
+	if(defined('ROOT_GROUP') && ($rv = __load_ld(ROOT_GROUP,$name,$prefix)) !== false) return $rv;
 	//check global location and load
-	if(($rv = __load_lib(ROOT,$name)) !== false) return $rv;
+	if(($rv = __load_ld(ROOT,$name,$prefix)) !== false) return $rv;
 	return false;
 }
 
 
-function __load_lib($root,$name,$return_on_error=false){
+function __load_ld($root,$name,$prefix='lib',$return_on_error=false){
 	//try to load from the root
-	$file = $root.'/lib/'.$name.'.php';
+	$file = $root.'/'.$prefix.'/'.$name.'.php';
 	if(file_exists($file)) return $file;
 	//load parts
 	$parts = explode('_',$name);
@@ -195,21 +191,28 @@ function __load_lib($root,$name,$return_on_error=false){
 		);
 	}
 	//build part based name
-	$file = $root.'/lib/'.array_shift($parts).'/'.implode('_',$parts).'.php';
+	$file = implode(array($root,$prefix,array_shift($parts),implode('_',$parts)),'/').'.php';
 	if(file_exists($file)) return $file;
 	return false;
 }
 
-function __register_err_codes($file,&$err_codes=array()){
-	include($file);
-	if(!isset($err)) return;
+function __make_class_name($name){
+	return str_replace(' ','',ucwords(str_replace('_',' ',basename($name))));
+}
+
+//---------------------------------------------------------
+//Error code loading
+//---------------------------------------------------------
+$__err = array();
+function __e($err=array()){
+	global $__err;
 	foreach($err as $code => $constant){
-		if(strpos($constant,'ERR_') !== 0){
-			trigger_error('Invalid error code constant: '.$constant.' must start with ERR_ definition ignored');
+		if(strpos($constant,'E_') !== 0){
+			trigger_error('Invalid error code constant: '.$constant.' must start with E_ definition ignored');
 			continue;
 		}
-		if(in_array($code,array_keys($err_codes))){
-			trigger_error('Error code already defined: '.$code.' by constant: '.$err_codes[$code].' definition ignored');
+		if(in_array($code,array_keys($__err))){
+			trigger_error('Error code already defined: '.$code.' by constant: '.$__err[$code].' definition ignored');
 			continue;
 		}
 		if(defined($constant)){
@@ -217,10 +220,7 @@ function __register_err_codes($file,&$err_codes=array()){
 			continue;
 		}
 		define($constant,$code);
-		$err_codes[$code] = $constant;
+		$__err[$code] = $constant;
 	}
 }
-
-
-
 
