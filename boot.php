@@ -128,12 +128,14 @@ function ld(){
 	//load
 	foreach(func_get_args() as $name){
 		$prefix = 'lib';
-		if(strpos('func') !== false && strpos('func') !== strlen($name)-4)
+		if(strpos($name,'func') !== false && strpos($name,'func') !== strlen($name)-4)
 			$prefix = 'func';
 		$load = ld_exists($name,$prefix);
 		if($load !== false && in_array($load,$__ld_loaded)) continue;
 		if($load !== false){
 			$__ld_loaded[] = $load;
+			if(defined('LD_DEBUG'))
+				echo "LD loaded file: $load\n";
 			require_once($load);
 			continue;
 		}
