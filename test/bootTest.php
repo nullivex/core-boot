@@ -2,7 +2,7 @@
 
 require_once(__DIR__.'/test_common.php');
 
-class libTest extends PHPUNIT_Framework_TestCase {
+class ldTest extends PHPUNIT_Framework_TestCase {
 
 	static $teardown_dirs = array();
 
@@ -66,30 +66,35 @@ class libTest extends PHPUNIT_Framework_TestCase {
 	}
 
 	public function testRelative(){
-		lib('test_root');
+		ld('test_root');
 		$this->assertTrue(class_exists('TestRoot2'));
 	}
 
 	public function testRoot(){
-		lib('/test_root');
+		ld('/test_root');
 		$this->assertTrue(class_exists('TestRoot'));
 	}
 
 	public function testGroup(){
-		lib('admin/test_admin');
+		ld('admin/test_admin');
 		$this->assertTrue(class_exists('TestAdmin'));
 	}
 	
 	public function testItem(){
-		lib('admin/item_test');
+		ld('admin/item_test');
 		$this->assertTrue(class_exists('ItemTest'));
 	}
 	
 	public function testOverloading(){
-		lib('item_test');
-		lib('admin/item_test');
-		lib('/test_root');
+		ld('item_test');
+		ld('admin/item_test');
+		ld('/test_root');
 		$this->assertTrue(class_exists('ItemTest'));
+	}
+	
+	public function testFunc(){
+		ld('func/mda');
+		$this->assert_true(is_callable('mda_get'));
 	}
 
 }
