@@ -201,6 +201,7 @@ function __load_ld($root,$name,$prefix='lib',$return_on_error=false){
 		);
 	}
 	//build part based name
+	if(count($parts) == 1) return false;
 	$file = implode(array($root,$prefix,array_shift($parts),implode('_',$parts)),'/').'.php';
 	if(defined('LD_DEBUG'))
 		echo "LD Trying to load file $file\n";
