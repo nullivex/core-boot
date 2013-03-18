@@ -1,5 +1,4 @@
 <?php
-
 require_once(__DIR__.'/test_common.php');
 
 class ldTest extends PHPUNIT_Framework_TestCase {
@@ -42,27 +41,27 @@ class ldTest extends PHPUNIT_Framework_TestCase {
 	}
 
 	public function testExistsClassExists(){
-		$this->assertNotSame(false,lib_exists('db'));
+		$this->assertNotSame(false,ld_exists('db'));
 	}
 
 	public function testExistsRelative(){
-		$this->assertEquals(ROOT.'/admin/lib/test_relative.php',lib_exists('test_relative'));
+		$this->assertEquals(ROOT.'/admin/lib/test_relative.php',ld_exists('test_relative'));
 	}
 
 	public function testExistsRoot(){
-		$this->assertEquals(ROOT.'/lib/test_root.php',lib_exists('/test_root'));
+		$this->assertEquals(ROOT.'/lib/test_root.php',ld_exists('/test_root'));
 	}
 
 	public function testExistsGroup(){
-		$this->assertEquals(ROOT.'/admin/lib/test_admin.php',lib_exists('admin/test_admin'));
+		$this->assertEquals(ROOT.'/admin/lib/test_admin.php',ld_exists('admin/test_admin'));
 	}
 	
 	public function testExistsItem(){
-		$this->assertEquals(ROOT.'/admin/lib/item/test.php',lib_exists('item_test'));
+		$this->assertEquals(ROOT.'/admin/lib/item/test.php',ld_exists('item_test'));
 	}
 	
 	public function testExistsItemGroup(){
-		$this->assertEquals(ROOT.'/admin/lib/item/test.php',lib_exists('admin/item_test'));
+		$this->assertEquals(ROOT.'/admin/lib/item/test.php',ld_exists('admin/item_test'));
 	}
 
 	public function testRelative(){
@@ -93,8 +92,8 @@ class ldTest extends PHPUNIT_Framework_TestCase {
 	}
 	
 	public function testFunc(){
-		ld('func/mda');
-		$this->assert_true(is_callable('mda_get'));
+		ld('/func/mda');
+		$this->assertTrue(is_callable('mda_get'));
 	}
 
 }
