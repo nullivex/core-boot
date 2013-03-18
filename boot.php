@@ -1,6 +1,8 @@
 <?php
 //Set the timezone to UTC before we start
 date_default_timezone_set('UTC');
+//set root path
+define('ROOT',__DIR__);
 
 //---------------------------------------------------------
 //Error Handling
@@ -39,9 +41,6 @@ function __boot_pre(){
 	global $config;
 
 	define('START',microtime(true));
-	
-	//set root path
-	define('ROOT',__DIR__);
 
 	//load config
 	$config = array();
