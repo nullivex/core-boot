@@ -128,10 +128,17 @@ function ld(){
 	//load
 	foreach(func_get_args() as $name){
 		$prefix = 'lib';
-		if(strpos($name,'func') !== false && strpos($name,'func') !== strlen($name)-4)
+		if(strpos($name,'func') !== false && strpos($name,'func') !== strlen($name)-4){
 			$prefix = 'func';
+			//strip func from $name
+			$name = str_replace('func/','',$name);
+		}
 		$load = ld_exists($name,$prefix);
-		if($load !== false && in_array($load,$__ld_loaded)) continue;
+		if($load !== false && in_array($load,$__ld_loaded)){
+			if(defined('LD_DEBUG'))
+				echo "LD already loaded: $load\n";
+			continue;
+		}
 		if($load !== false){
 			$__ld_loaded[] = $load;
 			if(defined('LD_DEBUG'))
@@ -180,6 +187,8 @@ function ld_exists($name,$prefix='lib'){
 function __load_ld($root,$name,$prefix='lib',$return_on_error=false){
 	//try to load from the root
 	$file = $root.'/'.$prefix.'/'.$name.'.php';
+	if(defined('LD_DEBUG'))
+		echo "LD Trying to load file $file\n";
 	if(file_exists($file)) return $file;
 	//load parts
 	$parts = explode('_',$name);
@@ -194,6 +203,8 @@ function __load_ld($root,$name,$prefix='lib',$return_on_error=false){
 	}
 	//build part based name
 	$file = implode(array($root,$prefix,array_shift($parts),implode('_',$parts)),'/').'.php';
+	if(defined('LD_DEBUG'))
+		echo "LD Trying to load file $file\n";
 	if(file_exists($file)) return $file;
 	return false;
 }
@@ -205,9 +216,9 @@ function __make_class_name($name){
 //---------------------------------------------------------
 //Error code loading
 //---------------------------------------------------------
-$__err = array();
 function __e($err=array()){
 	global $__err;
+	if(!isset($__err) || !is_array($__err)) $__err = array();
 	foreach($err as $code => $constant){
 		if(strpos($constant,'E_') !== 0){
 			trigger_error('Invalid error code constant: '.$constant.' must start with E_ definition ignored');
