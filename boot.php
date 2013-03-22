@@ -179,6 +179,8 @@ function ld_exists($name,$prefix='lib'){
 	if(defined('ROOT_GROUP') && ($rv = __load_ld(ROOT_GROUP,$name,$prefix)) !== false) return $rv;
 	//check global location and load
 	if(($rv = __load_ld(ROOT,$name,$prefix)) !== false) return $rv;
+	//check vendor area
+	if(($rv = __load_ld_vendor(ROOT,$name,$prefix)) !== false) return $rv;
 	return false;
 }
 
@@ -206,6 +208,13 @@ function __load_ld($root,$name,$prefix='lib',$return_on_error=false){
 	if(defined('LD_DEBUG'))
 		echo "LD Trying to load file $file\n";
 	if(file_exists($file)) return $file;
+	return false;
+}
+
+function __load_ld_vendor($root,$name,$prefix='lib'){
+	//try to load from vendor packages
+	$path = $root.'/vendor/openlss/'.$prefix.'-'.$name.'/'.$name.'.php';
+	if(file_exists($path)) return $path;
 	return false;
 }
 
