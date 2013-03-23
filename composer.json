@@ -1,0 +1,31 @@
+{
+	 "name":				"openlss/core-boot"
+	,"homepage":			"http://openlss.org"
+	,"description":			"The OpenLSS bootstrapper"
+	,"license":				"LGPLv2"
+	,"type":				"library"
+	,"keywords": [
+		 "openlss"
+		,"boot"
+		,"bootstrap"
+		,"ld"
+	]
+	,"authors": [
+		 {
+			 "name":		"Bryan Tong"
+			,"email":		"contact@nullivex.com"
+			,"homepage":	"http://bryantong.com"
+		}
+		,{
+			 "name":		"Tony Butler"
+			,"email":		"spudz76@gmail.com"
+			,"homepage":	"http://openlss.org"
+		}
+	]
+	,"require": {
+		"php":	">=5.3.2"
+	}
+	,"autoload": {
+		"files":	["boot.php"]
+	}
+}
