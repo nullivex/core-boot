@@ -2,7 +2,7 @@
 //Set the timezone to UTC before we start
 date_default_timezone_set('UTC');
 //set root path
-if(!defined('ROOT')) define('ROOT',dirname(dirname(__DIR__)));
+if(!defined('ROOT')) define('ROOT',dirname(dirname(dirname(dirname(__DIR__)))));
 
 //---------------------------------------------------------
 //Error Handling
@@ -220,9 +220,11 @@ function __load_ld($root,$name,$prefix='lib',$return_on_error=false){
 	return false;
 }
 
-function __load_ld_vendor($root,$name,$prefix='lib'){
+function __load_ld_vendor($root,$name,$prefix='lib',$vendor='openlss'){
 	//try to load from vendor packages
-	$path = $root.'/vendor/openlss/'.$prefix.'-'.$name.'/'.$name.'.php';
+	$path = implode('/',array($root,'vendor',$vendor,sprintf('%s-%s',$prefix,$name),$prefix,sprintf('%s.php',$name)));
+	if(defined('LD_DEBUG'))
+		echo "LD Vendor Path: $path\n";
 	if(file_exists($path)) return $path;
 	return false;
 }
