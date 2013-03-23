@@ -136,6 +136,12 @@ function ld(){
 			$name = str_replace('func/','',$name);
 		}
 		$load = ld_exists($name,$prefix);
+		if($load === true){
+			//already loaded
+			continue;
+		}
+		if(defined('LD_DEBUG'))
+			echo "LD about to load: ".print_r($load,true)."\n";
 		if($load !== false && in_array($load,$__ld_loaded)){
 			if(defined('LD_DEBUG'))
 				echo "LD already loaded: $load\n";
@@ -151,7 +157,7 @@ function ld(){
 		//print error
 		$trace = debug_backtrace();
 		trigger_error(
-				 'Autoloader file not found: '.$name
+				 'LD file not found: '.$name
 				.' called from '.$trace[0]['file']
 				.' line '.$trace[0]['line']
 			,E_USER_ERROR

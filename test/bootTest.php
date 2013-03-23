@@ -1,5 +1,7 @@
 <?php
-require_once(__DIR__.'/test_common.php');
+define('ROOT_GROUP',dirname(__DIR__).'/admin');
+define('ROOT',dirname(__DIR__));
+require_once(dirname(__DIR__).'/boot.php');
 
 class ldTest extends PHPUNIT_Framework_TestCase {
 
@@ -19,29 +21,36 @@ class ldTest extends PHPUNIT_Framework_TestCase {
 			self::$teardown_dirs[] = ROOT.'/admin/lib/item';
 			mkdir(ROOT.'/admin/lib/item',0777,true);
 		}
+		if(!file_exists(ROOT.'/func')){
+			self::$teardown_dirs[] = ROOT.'/func';
+			mkdir(ROOT.'/func');
+		}
 		//create files
 		file_put_contents(ROOT.'/lib/test_root.php','<?php class TestRoot{}');
 		file_put_contents(ROOT.'/admin/lib/test_admin.php','<?php class TestAdmin{}');
 		file_put_contents(ROOT.'/admin/lib/test_relative.php','<?php class TestRelative{}');
 		file_put_contents(ROOT.'/admin/lib/test_root.php','<?php class TestRoot2{}');
 		file_put_contents(ROOT.'/admin/lib/item/test.php','<?php class ItemTest{}');
+		file_put_contents(ROOT.'/func/test.php','<?php function testing(){}');
 		//falsely define our group
 		if(!defined('ROOT_GROUP')) define('ROOT_GROUP',ROOT.'/admin');
 	}
 
 	public static function tearDownAfterClass(){
 		//remove files
+		unlink(ROOT.'/func/test.php');
 		unlink(ROOT.'/lib/test_root.php');
 		unlink(ROOT.'/admin/lib/test_admin.php');
 		unlink(ROOT.'/admin/lib/test_relative.php');
 		unlink(ROOT.'/admin/lib/test_root.php');
 		unlink(ROOT.'/admin/lib/item/test.php');
 		//teardown dirs if we need to
+		rsort(self::$teardown_dirs);
 		foreach(self::$teardown_dirs as $dir) unlink($dir);
 	}
 
 	public function testExistsClassExists(){
-		$this->assertNotSame(false,ld_exists('db'));
+		$this->assertNotSame(false,ld_exists('test_root'));
 	}
 
 	public function testExistsRelative(){
@@ -92,8 +101,8 @@ class ldTest extends PHPUNIT_Framework_TestCase {
 	}
 	
 	public function testFunc(){
-		ld('/func/mda');
-		$this->assertTrue(is_callable('mda_get'));
+		ld('/func/test');
+		$this->assertTrue(is_callable('testing'));
 	}
 
 }
