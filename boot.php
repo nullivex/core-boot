@@ -2,7 +2,7 @@
 //Set the timezone to UTC before we start
 date_default_timezone_set('UTC');
 //set root path
-define('ROOT',__DIR__);
+if(!defined('ROOT')) define('ROOT',dirname(dirname(__DIR__)));
 
 //---------------------------------------------------------
 //Error Handling
@@ -58,10 +58,10 @@ function __boot_pre(){
 }
 
 function __boot_post(){
-	//init modules
+	//init core modules
 	__init_load_files(ROOT.'/init');
 	if(defined('ROOT_GROUP')){
-		//init modules
+		//init group modules
 		__init_load_files(ROOT_GROUP.'/init');
 	}
 }
@@ -154,7 +154,7 @@ function ld(){
 			,E_USER_ERROR
 		);
 	}
-	return false;
+	return true;
 }
 
 //Global auto loader existence checker
