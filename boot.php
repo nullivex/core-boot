@@ -64,6 +64,9 @@ function __boot_post(){
 		//init group modules
 		__init_load_files(ROOT_GROUP.'/init');
 	}
+	//load composer autoloader
+	if(file_exists(ROOT.'/vendor/autoload.php'))
+		require_once(ROOT.'/vendor/autoload.php');
 }
 
 function __init_load_files($dir_path,$callback=false,$callback_params=array(),$recurse=true){
