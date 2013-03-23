@@ -1,9 +1,10 @@
 <?php
+namespace LSS;
 define('ROOT_GROUP',dirname(__DIR__).'/admin');
 define('ROOT',dirname(__DIR__));
-require_once(dirname(__DIR__).'/boot.php');
+require_once(dirname(__DIR__).'/src/boot.php');
 
-class ldTest extends PHPUNIT_Framework_TestCase {
+class ldTest extends \PHPUNIT_Framework_TestCase {
 
 	static $teardown_dirs = array();
 
