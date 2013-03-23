@@ -26,6 +26,6 @@
 		"php":	">=5.3.2"
 	}
 	,"autoload": {
-		"files":	["boot.php"]
+		"include-path":	["src/"]
 	}
 }
