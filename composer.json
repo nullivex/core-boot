@@ -2,7 +2,7 @@
 	 "name":				"openlss/core-boot"
 	,"homepage":			"http://openlss.org"
 	,"description":			"The OpenLSS bootstrapper"
-	,"license":				"LGPLv2"
+	,"license":				"LGPL-3.0+"
 	,"type":				"library"
 	,"keywords": [
 		 "openlss"
