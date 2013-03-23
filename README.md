@@ -11,7 +11,7 @@ require('boot.php');
 __boot();
 ```
 
-Optionally you can predefine root paths and a group
+Optionally you can predefine root path and a group root
 ```php
 define('ROOT',__DIR__);
 define('ROOT_GROUP',__DIR__.'/admin');
@@ -22,10 +22,10 @@ __boot();
 What it does
 ----
   * By just loading the file
-   * Sets up all PHP errors to be exceptions
-   * Sets up a default exception error handler to print nicer error messages than PHP for uncaught exceptions
+   * Sets all PHP errors to be exceptions
+   * Sets up a default exception handler to print friendlier error messages than PHP does by default for uncaught exceptions
    * Sets the default timezone to UTC
-   * Sets the ROOT constant is not already defined
+   * Sets the ROOT constant if not already defined
   * By calling the __boot() function
    * Calls __boot_pre()
    * Calls __boot_post()
@@ -34,6 +34,7 @@ What it does
    * Sets the timezone from the config
   * By calling __boot_post()
    * Dynamically loads all module init code
+   * Loads the Composer autoload file (which will init composer modules and enable autoloading)
 
 Reference
 ---
