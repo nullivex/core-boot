@@ -56,29 +56,6 @@ Loads all PHP files from a given directory either by just including them or pass
   * $callback_params	An array of parameters to be passed to the callback in addition to the location of the file
   * $recurse			When set to TRUE will recurse into lower directories and load all files
 
-### (bool) ld()
-Global Auto Loader similar to LD for linux
-  * Takes unlimited arguments with the following syntax
-   * LIBRARIES (default)
-    * 'lib_name' - load the lib automatically based on its name
-     * will load group level and if not found will load root level
-     * will also try collection loading for libs in a collection
-     * EG: if item_taxes is passed it will check lib/item/taxes.php
-     * NOTE: even forced locations still perform this lookup
-    * '/lib_name' - force lib to load from root, other locations will not be tried
-     * 'group/lib_name' - cross load lib from other group other locations will not be tried
-   * FUNCTIONS
-    * 'func/pkg' - will load functions in the same fashion
-    * can also be forced with /func/pkg admin/func/pkg etc
-
-### (mixed) ld_exists($name,$prefix='lib')
-Global auto loader existence checker
-  * Will check to see if a lib exists and supports all the syntax of the global lib loader
-  * Returns the following
-   * true: class has already been loaded by name
-   * false: class does not exist and hasnt been loaded
-   * string: absolute file path to the class to be loaded
-
 ### (void) __e($err=array())
 Loads error codes
   * Array should be in the following format
