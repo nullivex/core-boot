@@ -23,7 +23,8 @@
 		}
 	]
 	,"require": {
-		"php":	">=5.3.2"
+		 "php":				">=5.3.2"
+		,"core-release":	"0.0"
 	}
 	,"include-path":	["src/"]
 }
