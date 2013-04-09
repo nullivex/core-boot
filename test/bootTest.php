@@ -24,6 +24,4 @@ require_once(dirname(__DIR__).'/src/lss_boot.php');
 
 class ldTest extends PHPUNIT_Framework_TestCase {
 
-	
-
 }

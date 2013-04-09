@@ -19,6 +19,9 @@
  *	If not, see <http://www.gnu.org/licenses/>.
  */
 
+//NOTICE: requires vendor/autoload.php to be loaded first
+//	or any other autoloader registered through spl_autoload_registers
+
 //Set the timezone to UTC before we start
 date_default_timezone_set('UTC');
 //set root path
@@ -64,14 +67,9 @@ function __boot(){
 function __boot_pre(){
 	global $config;
 
-	//load composer autoloader
-	if(file_exists(ROOT.'/vendor/autoload.php'))
-		require_once(ROOT.'/vendor/autoload.php');
-
 	define('START',microtime(true));
 
 	//load config
-	$config = array();
 	__init_load_files(ROOT.'/conf','__export_config',array(&$config));
 	if(defined('ROOT_GROUP') && is_dir(ROOT_GROUP.'/conf'))
 		__init_load_files(ROOT_GROUP.'/conf','__export_config',array(&$config));
@@ -79,17 +77,21 @@ function __boot_pre(){
 		include(ROOT.'/config.php');
 	if(defined('ROOT_GROUP') && file_exists(ROOT_GROUP.'/config.php'))
 		include(ROOT_GROUP.'/config.php');
-	var_dump($config);
+	//set the config if we can
+	if(class_exists('\LSS\Config') && is_callable(array(\LSS\Config::_get(),'setConfig')))
+		\LSS\Config::_get()->setConfig($config);
 
 	//set timezone
 	if(isset($config['timezone']))
 		date_default_timezone_set($config['timezone']);
+	unset($config);
 }
 
 function __boot_post(){
 	//init core modules
-	__init_load_files(ROOT.'/init');
-	if(defined('ROOT_GROUP')){
+	if(is_dir(ROOT.'/init'))
+		__init_load_files(ROOT.'/init');
+	if(defined('ROOT_GROUP') && is_dir(ROOT_GROUP.'/init')){
 		//init group modules
 		__init_load_files(ROOT_GROUP.'/init');
 	}
