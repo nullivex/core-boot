@@ -47,7 +47,7 @@ function __exception_handler($e){
 	try {
 		if(is_callable('dolog')){
 			dolog($e->getMessage()."\n".$e,LOG_ERROR);
-			exit($e->getCode());
+			exit($e);
 		}
 	} catch(Exception $le){
 		echo $le;
@@ -65,12 +65,11 @@ function __boot(){
 }
 
 function __boot_pre(){
-	global $config;
 
 	define('START',microtime(true));
-
 	//load config
-	__init_load_files(ROOT.'/conf','__export_config',array(&$config));
+	if(is_dir(ROOT.'/conf'))
+		__init_load_files(ROOT.'/conf','__export_config',array(&$config));
 	if(defined('ROOT_GROUP') && is_dir(ROOT_GROUP.'/conf'))
 		__init_load_files(ROOT_GROUP.'/conf','__export_config',array(&$config));
 	if(file_exists(ROOT.'/config.php'))
@@ -80,7 +79,6 @@ function __boot_pre(){
 	//set the config if we can
 	if(class_exists('\LSS\Config') && is_callable(array(\LSS\Config::_get(),'setConfig')))
 		\LSS\Config::_get()->setConfig($config);
-
 	//set timezone
 	if(isset($config['timezone']))
 		date_default_timezone_set($config['timezone']);
