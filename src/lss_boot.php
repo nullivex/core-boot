@@ -41,9 +41,13 @@ function __exception_handler($e){
 		echo '<h1>Error</h1><p>'.$e->getMessage().'</p><pre>'.$e.'</pre>';
 		exit($e->getCode());
 	}
-	if(is_callable('dolog')){
-		dolog($e->getMessage()."\n".$e,LOG_ERROR);
-		exit($e->getCode());
+	try {
+		if(is_callable('dolog')){
+			dolog($e->getMessage()."\n".$e,LOG_ERROR);
+			exit($e->getCode());
+		}
+	} catch(Exception $le){
+		echo $le;
 	}
 	exit($e);
 }
@@ -60,6 +64,10 @@ function __boot(){
 function __boot_pre(){
 	global $config;
 
+	//load composer autoloader
+	if(file_exists(ROOT.'/vendor/autoload.php'))
+		require_once(ROOT.'/vendor/autoload.php');
+
 	define('START',microtime(true));
 
 	//load config
@@ -71,6 +79,7 @@ function __boot_pre(){
 		include(ROOT.'/config.php');
 	if(defined('ROOT_GROUP') && file_exists(ROOT_GROUP.'/config.php'))
 		include(ROOT_GROUP.'/config.php');
+	var_dump($config);
 
 	//set timezone
 	if(isset($config['timezone']))
@@ -84,9 +93,6 @@ function __boot_post(){
 		//init group modules
 		__init_load_files(ROOT_GROUP.'/init');
 	}
-	//load composer autoloader
-	if(file_exists(ROOT.'/vendor/autoload.php'))
-		require_once(ROOT.'/vendor/autoload.php');
 }
 
 function __init_load_files($dir_path,$callback=false,$callback_params=array(),$recurse=true){
